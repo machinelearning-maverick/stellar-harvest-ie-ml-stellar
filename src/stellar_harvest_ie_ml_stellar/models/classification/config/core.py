@@ -24,3 +24,6 @@ def load_config(config_path: Path = Path("config.yml")) -> Config:
     with config_path.open("r") as file:
         raw_config = yaml.safe_load(file)
     return Config.model_validate(raw_config)
+
+
+config = load_config()

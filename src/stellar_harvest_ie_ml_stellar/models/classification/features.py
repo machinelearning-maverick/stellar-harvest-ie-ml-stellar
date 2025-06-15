@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import Tuple
 
-
+from .config.core import config
 from stellar_harvest_ie_config.utils.log_decorators import log_io
 
 
@@ -25,7 +25,9 @@ def extract_feature_labels_planetary_kp_index(
     def categorize(k: int) -> int:
         return 0 if k <= 3 else (1 if k <= 5 else 2)
     
-    X = df_copy.drop(columns=["kp_index"])
-    y = df_copy["kp_index"].map(categorize)
+    df_copy[config.model_config.target] = df_copy["kp_index"].map(categorize)
+    
+    X = df_copy[config.model_config.features]
+    y = df_copy[config.model_config.target]
 
     return X, y
