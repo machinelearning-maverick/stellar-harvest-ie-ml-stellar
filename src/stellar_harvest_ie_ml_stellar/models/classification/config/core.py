@@ -1,6 +1,6 @@
 import yaml
 
-from typing import List
+from typing import List, Optional
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -11,8 +11,15 @@ class AppConfig(BaseModel):
 
 
 class ModelConfig(BaseModel):
+    test_size: float
+    random_state: int
+    n_estimators: int
+    max_depth: Optional[int] = None
+
+    features_raw: List[str]
+    features_transformed: List[str]
+    features_categorical: List[str]
     target: str
-    features: List[str]
 
 
 class Config(BaseModel):
