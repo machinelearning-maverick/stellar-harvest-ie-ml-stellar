@@ -1,0 +1,40 @@
+test_size: 0.2
+random_state: 42
+n_estimators: 100
+max_depth: null
+
+features_raw:
+  - kp_index
+  - estimated_kp
+  - kp
+  - year
+  - month
+  - day
+  - hour
+  - minute
+  - kpi_label_str
+  - kpi_label
+
+features_transformed:
+  - kp_0P
+  - kp_0Z
+  - kp_1M
+  - kp_1P
+  - kp_1Z
+  - kp_2M
+  - kp_2P
+  - kp_2Z
+  - kp_3M
+  - kp_3Z
+  - kp_<UNKNOWN>
+  - estimated_kp
+  - year
+  - month
+  - day
+  - hour
+  - minute
+  
+features_categorical:
+  - kp
+
+target: kpi_label

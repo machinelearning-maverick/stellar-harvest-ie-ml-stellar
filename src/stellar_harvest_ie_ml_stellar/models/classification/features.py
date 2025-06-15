@@ -2,12 +2,11 @@ import pandas as pd
 from typing import Tuple
 
 from stellar_harvest_ie_config.utils.log_decorators import log_io
+from stellar_harvest_ie_ml_stellar.models.classification.config.core import config
 
 
 @log_io
-def extract_feature_labels_planetary_kp_index(
-    df: pd.DataFrame,
-) -> Tuple[pd.DataFrame, pd.Series]:
+def extract(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
     df_copy = df.copy()
     tt: str = "time_tag"
 
@@ -23,8 +22,10 @@ def extract_feature_labels_planetary_kp_index(
     # 2) categorize target
     def categorize(k: int) -> int:
         return 0 if k <= 3 else (1 if k <= 5 else 2)
-    
-    X = df_copy["kp_index"].map(categorize)
-    y = df_copy.drop(columns=["kp_index"])
+
+    df_copy[config.model_config.target] = df_copy["kp_index"].map(categorize)
+
+    X = df_copy[config.model_config.features]
+    y = df_copy[config.model_config.target]
 
     return X, y
