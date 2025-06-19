@@ -23,9 +23,9 @@ def extract(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
     def categorize(k: int) -> int:
         return 0 if k <= 3 else (1 if k <= 5 else 2)
 
-    df_copy[config.model_config.target] = df_copy["kp_index"].map(categorize)
+    df_copy[config.model_cfg.target] = df_copy["kp_index"].map(categorize)
 
-    X = df_copy[config.model_config.features]
-    y = df_copy[config.model_config.target]
+    X = df_copy[config.model_cfg.features]
+    y = df_copy[config.model_cfg.target]
 
     return X, y
