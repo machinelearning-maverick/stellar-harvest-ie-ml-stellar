@@ -16,7 +16,6 @@ model_cfg:
     - day
     - hour
     - minute
-    - kpi_label_str
     - kpi_label
 
   features_transformed:

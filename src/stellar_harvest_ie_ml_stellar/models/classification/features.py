@@ -5,7 +5,7 @@ from stellar_harvest_ie_config.utils.log_decorators import log_io
 from stellar_harvest_ie_ml_stellar.models.classification.config.core import config
 
 
-@log_io
+# @log_io()
 def extract(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
     df_copy = df.copy()
     tt: str = "time_tag"
@@ -25,7 +25,7 @@ def extract(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
 
     df_copy[config.model_cfg.target] = df_copy["kp_index"].map(categorize)
 
-    X = df_copy[config.model_cfg.features]
+    X = df_copy[config.model_cfg.features_raw]
     y = df_copy[config.model_cfg.target]
 
     return X, y

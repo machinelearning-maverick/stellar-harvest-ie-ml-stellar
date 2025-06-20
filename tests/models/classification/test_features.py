@@ -1,6 +1,7 @@
 import pandas as pd
 
 from stellar_harvest_ie_ml_stellar.models.classification.features import extract
+from stellar_harvest_ie_ml_stellar.models.classification.config.core import config
 
 
 def test_extract():
@@ -19,3 +20,6 @@ def test_extract():
     assert isinstance(y, pd.Series)
     assert X.shape[0] == 2
     assert y.shape[0] == 2
+
+    for column in config.model_cfg.features_raw:
+        assert column in list(X.columns)
