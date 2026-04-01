@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stellar_harvest_ie_ml_stellar"
+version = "0.1.0"
+description = "Machine learning training and inference pipeline for StellarHarvest"
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["machine-learning", "mlops", "pipeline", "sklearn", "pydantic"]
+authors = [
+  { name = "Machine Learning Maverick", email = "github@machinelearningmaverick.com" },
+]
+dependencies = [
+  "pandas>=2.0.0",
+  "scikit-learn>=1.3.0",
+  "pydantic>=2.11.0",
+  "pyyaml>=6.0",
+  "stellar-harvest-ie-config",
+  "stellar-harvest-ie-models"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["stellar_harvest_ie_ml_stellar*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-s -q --disable-warnings --strict-markers"
+log_cli = true
+log_cli_level = "DEBUG"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.2.0",
+  "pytest-asyncio>=0.20.0",
+  "mypy>=0.971",
+  "flake8>=4.0.1",
+  "ruff>=0.1.0"
+]

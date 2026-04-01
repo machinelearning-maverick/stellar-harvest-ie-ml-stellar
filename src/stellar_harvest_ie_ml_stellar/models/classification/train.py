@@ -16,8 +16,8 @@ def train(
     X: pd.DataFrame, y: pd.Series
 ) -> Tuple[RandomForestClassifier, pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
 
-    test_size = config.model_config.test_size
-    random_state = config.model_config.random_state
+    test_size = config.model_cfg.test_size
+    random_state = config.model_cfg.random_state
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state, shuffle=False
@@ -48,8 +48,8 @@ def train(
     X_test_transformed = transformer.transform(X_test)
 
     model = RandomForestClassifier(
-        n_estimators=config.model_config.n_estimators,
-        random_state=config.model_config.random_state,
+        n_estimators=config.model_cfg.n_estimators,
+        random_state=config.model_cfg.random_state,
     )
     model.fit(X_train_transformed, y_train)
 
