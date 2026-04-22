@@ -18,7 +18,8 @@ dependencies = [
   "pydantic>=2.11.0",
   "pyyaml>=6.0",
   "stellar-harvest-ie-config>=0.1.2",
-  "stellar-harvest-ie-models>=0.3.1"
+  "stellar-harvest-ie-models>=0.3.1",
+  "stellar-harvest-ie-store>=0.1.2"
 ]
 
 [tool.setuptools.packages.find]
