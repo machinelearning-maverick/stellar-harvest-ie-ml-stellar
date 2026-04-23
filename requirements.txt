@@ -2,6 +2,7 @@ pandas>=2.0.0
 scikit-learn>=1.3.0
 pydantic>=2.11.0
 pyyaml>=6.0
+schedule>=1.2.0
 
 # Internal modules live in pyproject.toml 
 # and are installed by the Dockerfile's pinned-version layer.

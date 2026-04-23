@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stellar-harvest-ie-ml-stellar"
-version = "0.1.0"
+version = "0.1.1"
 description = "Machine learning training and inference pipeline for StellarHarvest"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -17,10 +17,14 @@ dependencies = [
   "scikit-learn>=1.3.0",
   "pydantic>=2.11.0",
   "pyyaml>=6.0",
+  "schedule>=1.2.0",
   "stellar-harvest-ie-config>=0.1.2",
   "stellar-harvest-ie-models>=0.3.1",
-  "stellar-harvest-ie-store>=0.1.2"
+  "stellar-harvest-ie-store>=0.1.2",
 ]
+
+[project.scripts]
+sh-classification-pipeline-scheduler = "stellar_harvest_ie_ml_stellar.schedulers.classification_pipeline_scheduler:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -38,5 +42,5 @@ dev = [
   "pytest-asyncio>=0.20.0",
   "mypy>=0.971",
   "flake8>=4.0.1",
-  "ruff>=0.1.0"
+  "ruff>=0.1.0",
 ]

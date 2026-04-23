@@ -1,0 +1,40 @@
+FROM python:3.11-slim
+WORKDIR /app
+
+# Layer 1: third-party deps (stable, highly cacheable)
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Layer 2: internal deps (busts when any pinned version changes)
+# ARG SHIE_CONFIG_VERSION
+# ARG SHIE_MODELS_VERSION
+# ARG SHIE_STREAM_VERSION
+# ARG SHIE_STORE_VERSION
+# ARG SHIE_PRODUCERS_VERSION
+# ARG SHIE_CONSUMERS_VERSION
+ARG SHIE_ML_STELLAR_VERSION
+
+# Fail loudly if any required version arg is missing
+RUN : "${SHIE_ML_STELLAR_VERSION:?SHIE_ML_STELLAR_VERSION build arg is required}"
+
+
+RUN --mount=type=secret,id=env \
+    set -o allexport && \
+    . /run/secrets/env && \
+    set +o allexport && \
+    pip install --no-cache-dir \
+    --index-url https://pypi.org/simple \
+    --extra-index-url "$DEVPI_HASEK_DEV_URL" \
+    --trusted-host host.docker.internal \
+    "stellar-harvest-ie-ml-stellar==${SHIE_ML_STELLAR_VERSION}" \
+    "pandas>=2.0.0" \
+    "scikit-learn>=1.3.0" \
+    "pydantic>=2.11.0" \
+    "pyyaml>=6.0" \
+    "schedule>=1.2.0"
+
+# Layer 3: app code / entrypoint (rarely changes)
+CMD ["sh-classification-pipeline-scheduler"]
+
+# ENTRYPOINT ["shsh-classification-pipeline-scheduler"]
+# CMD [] # default args, empty
