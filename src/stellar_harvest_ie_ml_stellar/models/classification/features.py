@@ -5,7 +5,7 @@ from stellar_harvest_ie_config.utils.log_decorators import log_io
 from stellar_harvest_ie_ml_stellar.models.classification.config.core import config
 
 
-# @log_io()
+@log_io()
 def extract(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
     df_copy = df.copy()
     tt: str = "time_tag"
