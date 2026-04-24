@@ -9,15 +9,10 @@ from stellar_harvest_ie_models.stellar.swpc.entities import KpIndexEntity
 
 
 @log_io()
-def load_planetary_kp_index(url: str) -> pd.DataFrame:
-    return pd.read_json(url)
-
-
-@log_io()
 async def load_planetary_kp_index() -> pd.DataFrame:
     async with AsyncSessionLocal() as session:
         repository = AsyncRepository(KpIndexEntity, session)
-        indices: List[KpIndexEntity] = repository.list()
+        indices: List[KpIndexEntity] = await repository.list()
         df = pd.DataFrame(
             [
                 {
