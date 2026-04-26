@@ -7,6 +7,12 @@ model_cfg:
   n_estimators: 100
   max_depth: null
 
+  input_features:
+    - time_tag
+    - kp_index
+    - estimated_kp
+    - kp
+
   features_raw:
     - kp_index
     - estimated_kp

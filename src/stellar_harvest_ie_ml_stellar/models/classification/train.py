@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from typing import Tuple
@@ -11,7 +12,11 @@ from stellar_harvest_ie_config.utils.log_decorators import log_io
 from stellar_harvest_ie_ml_stellar.models.classification.config.core import config
 
 
-@log_io()
+@log_io(skip_types={
+    pd.DataFrame: lambda v: f"<DataFrame shape={v.shape} columns={list(v.columns)}>",
+    pd.Series: lambda v: f"<Series name={v.name} len={len(v)}>",
+    np.ndarray: lambda v: f"<ndarray shape={v.shape} dtype={v.dtype}>",
+})
 def train(
     X: pd.DataFrame, y: pd.Series
 ) -> Tuple[RandomForestClassifier, pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:

@@ -8,21 +8,26 @@ from stellar_harvest_ie_store.repository import AsyncRepository
 from stellar_harvest_ie_models.stellar.swpc.entities import KpIndexEntity
 
 
-@log_io()
+def kp_entities_to_df(entities: List[KpIndexEntity]) -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "id": e.id,
+                "time_tag": e.time_tag,
+                "kp_index": e.kp_index,
+                "estimated_kp": e.estimated_kp,
+                "kp": e.kp,
+            }
+            for e in entities
+        ]
+    )
+
+
+@log_io(skip_types={
+    pd.DataFrame: lambda v: f"<DataFrame shape={v.shape} columns={list(v.columns)}>",
+})
 async def load_planetary_kp_index() -> pd.DataFrame:
     async with AsyncSessionLocal() as session:
         repository = AsyncRepository(KpIndexEntity, session)
         indices: List[KpIndexEntity] = await repository.list()
-        df = pd.DataFrame(
-            [
-                {
-                    "id": e.id,
-                    "time_tag": e.time_tag,
-                    "kp_index": e.kp_index,
-                    "estimated_kp": e.estimated_kp,
-                    "kp": e.kp,
-                }
-                for e in indices
-            ]
-        )
-        return df
+        return kp_entities_to_df(indices)

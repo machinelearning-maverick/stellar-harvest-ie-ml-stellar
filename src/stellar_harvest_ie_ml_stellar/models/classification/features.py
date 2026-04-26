@@ -5,7 +5,10 @@ from stellar_harvest_ie_config.utils.log_decorators import log_io
 from stellar_harvest_ie_ml_stellar.models.classification.config.core import config
 
 
-@log_io()
+@log_io(skip_types={
+    pd.DataFrame: lambda v: f"<DataFrame shape={v.shape} columns={list(v.columns)}>",
+    pd.Series: lambda v: f"<Series name={v.name} len={len(v)}>",
+})
 def extract(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
     df_copy = df.copy()
     tt: str = "time_tag"
