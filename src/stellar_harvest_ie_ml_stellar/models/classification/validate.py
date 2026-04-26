@@ -1,8 +1,12 @@
 import pandas as pd
 
+from stellar_harvest_ie_config.utils.log_decorators import log_io
 from stellar_harvest_ie_ml_stellar.models.classification.config.core import config
 
 
+@log_io(skip_types={
+    pd.DataFrame: lambda v: f"<DataFrame shape={v.shape} columns={list(v.columns)}>",
+})
 def validate(df: pd.DataFrame) -> None:
     if df.empty:
         raise ValueError("DataFrame is empty")
