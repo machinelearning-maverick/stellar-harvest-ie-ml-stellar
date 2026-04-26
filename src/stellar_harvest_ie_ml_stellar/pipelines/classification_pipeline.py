@@ -10,8 +10,8 @@ from stellar_harvest_ie_ml_stellar.models.classification.evaluate import evaluat
 
 
 @log_io()
-def run_classification_pipeline() -> dict:
-    df = load_planetary_kp_index()
+async def run_classification_pipeline() -> dict:
+    df = await load_planetary_kp_index()
     validate(df=df)
     X, y = extract(df=df)
     model, X_train, X_test, y_train, y_test = train(X=X, y=y)
