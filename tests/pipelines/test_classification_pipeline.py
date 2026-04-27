@@ -5,18 +5,12 @@ import numpy as np
 import pandas as pd
 
 from stellar_harvest_ie_models.stellar.swpc.entities import KpIndexEntity
-from stellar_harvest_ie_ml_stellar.data.loader import (
-    load_planetary_kp_index,
-    kp_entities_to_df,
-)
+from stellar_harvest_ie_ml_stellar.data.loader import kp_entities_to_df
 from stellar_harvest_ie_ml_stellar.models.classification.validate import validate
 from stellar_harvest_ie_ml_stellar.models.classification.features import extract
 from stellar_harvest_ie_ml_stellar.models.classification.train import train
 from stellar_harvest_ie_ml_stellar.models.classification.predict import predict
 from stellar_harvest_ie_ml_stellar.models.classification.evaluate import evaluate
-from stellar_harvest_ie_ml_stellar.pipelines.classification_pipeline import (
-    run_classification_pipeline,
-)
 from sklearn.ensemble import RandomForestClassifier
 from stellar_harvest_ie_ml_stellar.models.classification.config.core import config
 
@@ -151,8 +145,6 @@ def test_extract():
 
 async def test_validate():
     df = kp_entities_to_df(_KP_ROWS)
-
-    df = await load_planetary_kp_index()
     assert isinstance(df, pd.DataFrame)
 
     validate(df=df)
@@ -160,8 +152,6 @@ async def test_validate():
 
 async def test_validate_missing_columns():
     df = kp_entities_to_df(_KP_ROWS)
-
-    df = await load_planetary_kp_index()
     df = df.drop(columns=["kp_index"])
 
     with raises(ValueError, match="missing required columns"):

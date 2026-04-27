@@ -32,6 +32,7 @@ include = ["stellar_harvest_ie_ml_stellar*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
 addopts = "-s -q --disable-warnings --strict-markers"
 log_cli = true
 log_cli_level = "DEBUG"
