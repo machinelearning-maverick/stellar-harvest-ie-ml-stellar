@@ -30,7 +30,7 @@ def job():
 
 
 def main(env_path="/run/secrets/env"):
-    load_dotenv(env_path)
+    load_dotenv(env_path if os.path.exists(env_path) else ".env")
 
     try:
         schedule_day = os.environ["SCHEDULE_REGRESSION_DAY"]
