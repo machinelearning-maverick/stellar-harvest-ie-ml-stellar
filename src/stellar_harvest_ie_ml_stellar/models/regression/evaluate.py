@@ -11,10 +11,12 @@ import pandas as pd
 from stellar_harvest_ie_config.utils.log_decorators import log_io
 
 
-@log_io(skip_types={
-    pd.Series: lambda v: f"<Series name={v.name} len={len(v)}>",
-    np.ndarray: lambda v: f"<ndarray shape={v.shape} dtype={v.dtype}>",
-})
+@log_io(
+    skip_types_input={
+        pd.Series: lambda v: f"<Series name={v.name} len={len(v)}>",
+        np.ndarray: lambda v: f"<ndarray shape={v.shape} dtype={v.dtype}>",
+    }
+)
 def evaluate(model, X_test: pd.DataFrame, y_test: pd.Series) -> dict:
     y_pred = model.predict(X_test)
 

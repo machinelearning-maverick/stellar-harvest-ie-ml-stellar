@@ -4,9 +4,11 @@ from stellar_harvest_ie_config.utils.log_decorators import log_io
 from stellar_harvest_ie_ml_stellar.models.regression.config.core import config
 
 
-@log_io(skip_types={
-    pd.DataFrame: lambda v: f"<DataFrame shape={v.shape} columns={list(v.columns)}>",
-})
+@log_io(
+    skip_types_input={
+        pd.DataFrame: lambda v: f"<DataFrame shape={v.shape} columns={list(v.columns)}>",
+    }
+)
 def validate(df: pd.DataFrame) -> None:
     if df.empty:
         raise ValueError("DataFrame is empty")

@@ -23,9 +23,11 @@ def kp_entities_to_df(entities: List[KpIndexEntity]) -> pd.DataFrame:
     )
 
 
-@log_io(skip_types={
-    pd.DataFrame: lambda v: f"<DataFrame shape={v.shape} columns={list(v.columns)}>",
-})
+@log_io(
+    skip_types_input={
+        pd.DataFrame: lambda v: f"<DataFrame shape={v.shape} columns={list(v.columns)}>",
+    }
+)
 async def load_planetary_kp_index() -> pd.DataFrame:
     async with AsyncSessionLocal() as session:
         repository = AsyncRepository(KpIndexEntity, session)
