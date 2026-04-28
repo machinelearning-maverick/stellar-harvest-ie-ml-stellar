@@ -1,7 +1,7 @@
 import numpy as np
 
 from stellar_harvest_ie_config.utils.log_decorators import log_io
-from stellar_harvest_ie_ml_stellar.models.classification import __version__ as _version
+from stellar_harvest_ie_ml_stellar.models.regression import __version__ as _version
 
 
 @log_io(skip_types={

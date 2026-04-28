@@ -24,7 +24,7 @@ dependencies = [
 ]
 
 [project.scripts]
-sh-classification-pipeline-scheduler = "stellar_harvest_ie_ml_stellar.schedulers.classification_pipeline_scheduler:main"
+sh-regression-pipeline-scheduler = "stellar_harvest_ie_ml_stellar.schedulers.regression_pipeline_scheduler:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

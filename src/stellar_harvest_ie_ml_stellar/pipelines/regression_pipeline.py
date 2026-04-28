@@ -10,7 +10,7 @@ from stellar_harvest_ie_ml_stellar.models.regression.evaluate import evaluate
 
 
 @log_io()
-async def run_classification_pipeline() -> dict:
+async def run_regression_pipeline() -> dict:
     df = await load_planetary_kp_index()
     validate(df=df)
     X, y = extract(df=df)

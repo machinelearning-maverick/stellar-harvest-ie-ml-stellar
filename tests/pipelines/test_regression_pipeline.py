@@ -12,7 +12,7 @@ from stellar_harvest_ie_ml_stellar.models.regression.train import train
 from stellar_harvest_ie_ml_stellar.models.regression.predict import predict
 from stellar_harvest_ie_ml_stellar.models.regression.evaluate import evaluate
 from sklearn.ensemble import RandomForestClassifier
-from stellar_harvest_ie_ml_stellar.models.classification.config.core import config
+from stellar_harvest_ie_ml_stellar.models.regression.config.core import config
 
 
 _KP_ROWS = [

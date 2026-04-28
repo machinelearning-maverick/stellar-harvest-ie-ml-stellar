@@ -34,7 +34,7 @@ RUN --mount=type=secret,id=env \
     "schedule>=1.2.0"
 
 # Layer 3: app code / entrypoint (rarely changes)
-CMD ["sh-classification-pipeline-scheduler"]
+CMD ["sh-regression-pipeline-scheduler"]
 
-# ENTRYPOINT ["shsh-classification-pipeline-scheduler"]
+# ENTRYPOINT ["shsh-regression-pipeline-scheduler"]
 # CMD [] # default args, empty

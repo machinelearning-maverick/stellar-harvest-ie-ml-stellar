@@ -2,7 +2,7 @@ import pandas as pd
 from typing import Tuple
 
 from stellar_harvest_ie_config.utils.log_decorators import log_io
-from stellar_harvest_ie_ml_stellar.models.classification.config.core import config
+from stellar_harvest_ie_ml_stellar.models.regression.config.core import config
 
 
 @log_io(skip_types={
