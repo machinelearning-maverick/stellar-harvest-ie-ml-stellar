@@ -10,6 +10,7 @@ from stellar_harvest_ie_config.utils.log_decorators import log_io
 
 class AppConfig(BaseModel):
     package_name: str
+    docs_url: str   
 
 
 class ModelConfig(BaseModel):

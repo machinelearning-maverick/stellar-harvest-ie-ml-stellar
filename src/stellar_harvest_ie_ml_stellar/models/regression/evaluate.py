@@ -1,12 +1,6 @@
-from sklearn.metrics import (
-    accuracy_score,
-    f1_score,
-    classification_report,
-    confusion_matrix,
-)
-
 import numpy as np
 import pandas as pd
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from stellar_harvest_ie_config.utils.log_decorators import log_io
 
@@ -19,12 +13,16 @@ from stellar_harvest_ie_config.utils.log_decorators import log_io
 )
 def evaluate(model, X_test: pd.DataFrame, y_test: pd.Series) -> dict:
     y_pred = model.predict(X_test)
+    y_pred = np.clip(y_pred, 0.0, 9.0)  # Kp is bounded
 
-    model_metrics: dict = {
-        "accuracy": accuracy_score(y_test, y_pred),
-        "f1_macro": f1_score(y_test, y_pred, average="macro"),
-        "class_report": classification_report(y_test, y_pred, output_dict=True),
-        "confusion_matrix": confusion_matrix(y_test, y_pred),
+    # Persistence baseline: predict that Kp doesn't change over the horizon.
+    # Using lag1 from features as the naive forecast.
+    y_naive = X_test["kp_lag1"].values
+
+    return {
+        "mae": float(mean_absolute_error(y_test, y_pred)),
+        "rmse": float(np.sqrt(mean_squared_error(y_test, y_pred))),
+        "r2": float(r2_score(y_test, y_pred)),
+        "mae_baseline": float(mean_absolute_error(y_test, y_naive)),
+        "rmse_baseline": float(np.sqrt(mean_squared_error(y_test, y_naive))),
     }
-
-    return model_metrics

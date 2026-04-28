@@ -1,7 +1,6 @@
 from pytest import raises
 from datetime import datetime, timedelta
 
-import numpy as np
 import pandas as pd
 
 from stellar_harvest_ie_models.stellar.swpc.entities import KpIndexEntity
@@ -11,7 +10,7 @@ from stellar_harvest_ie_ml_stellar.models.regression.features import extract
 from stellar_harvest_ie_ml_stellar.models.regression.train import train
 from stellar_harvest_ie_ml_stellar.models.regression.predict import predict
 from stellar_harvest_ie_ml_stellar.models.regression.evaluate import evaluate
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import HistGradientBoostingRegressor
 from stellar_harvest_ie_ml_stellar.models.regression.config.core import config
 
 
@@ -48,43 +47,25 @@ _KP_ROWS_REGRESSION = [
     for i in range(250)
 ]
 
-_KP_ROWS_LARGE = [
-    KpIndexEntity(
-        time_tag=datetime(2024, 1, 1, (i * 3) % 24, 0),
-        kp_index=[1, 4, 7][i % 3],
-        estimated_kp=float([1, 4, 7][i % 3]),
-        kp=["1Z", "4P", "7M"][i % 3],
-    )
-    for i in range(20)
-]
-
 
 def test_evaluate():
-    df = kp_entities_to_df(_KP_ROWS_LARGE)
+    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
     X, y = extract(df=df)
     model, _, X_test, _, y_test = train(X=X, y=y)
 
     result = evaluate(model=model, X_test=X_test, y_test=y_test)
 
     assert isinstance(result, dict)
-    assert set(result.keys()) == {
-        "accuracy",
-        "f1_macro",
-        "class_report",
-        "confusion_matrix",
-    }
-    assert 0.0 <= result["accuracy"] <= 1.0
-    assert 0.0 <= result["f1_macro"] <= 1.0
-    assert isinstance(result["class_report"], dict)
-    assert isinstance(result["confusion_matrix"], np.ndarray)
-    assert result["confusion_matrix"].shape == (
-        len(np.unique(y_test)),
-        len(np.unique(y_test)),
-    )
+    assert set(result.keys()) == {"mae", "rmse", "r2", "mae_baseline", "rmse_baseline"}
+    assert result["mae"] >= 0.0
+    assert result["rmse"] >= 0.0
+    assert result["mae_baseline"] >= 0.0
+    assert result["rmse_baseline"] >= 0.0
+    assert isinstance(result["r2"], float)
 
 
 def test_predict():
-    df = kp_entities_to_df(_KP_ROWS_LARGE)
+    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
     X, y = extract(df=df)
     model, _, X_test, _, _ = train(X=X, y=y)
 
@@ -93,13 +74,14 @@ def test_predict():
     assert isinstance(result, dict)
     assert set(result.keys()) == {"predictions", "version", "validation_errors"}
     assert len(result["predictions"]) == X_test.shape[0]
-    assert set(result["predictions"]).issubset({0, 1, 2})
+    assert result["predictions"].min() >= 0.0
+    assert result["predictions"].max() <= 9.0
     assert isinstance(result["version"], str)
     assert result["validation_errors"] is None
 
 
 def test_train_split():
-    df = kp_entities_to_df(_KP_ROWS_LARGE)
+    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
     X, y = extract(df=df)
 
     _, _, _, y_train, y_test = train(X=X, y=y)
@@ -111,33 +93,28 @@ def test_train_split():
 
 
 def test_train_model():
-    df = kp_entities_to_df(_KP_ROWS_LARGE)
+    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
     X, y = extract(df=df)
 
-    model, _, _, y_train, _ = train(X=X, y=y)
+    model, _, _, _, _ = train(X=X, y=y)
 
-    assert isinstance(model, RandomForestClassifier)
-    assert model.n_estimators == config.model_cfg.n_estimators
+    assert isinstance(model, HistGradientBoostingRegressor)
+    assert model.max_iter == config.model_cfg.n_estimators
     assert model.random_state == config.model_cfg.random_state
-    assert hasattr(model, "estimators_")  # fitted
-    assert set(model.classes_) == set(y_train.unique())
+    assert hasattr(model, "_is_fitted")  # fitted
 
 
-def test_train_categorical_encoding():
-    df = kp_entities_to_df(_KP_ROWS_LARGE)
+def test_train_split_shapes():
+    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
     X, y = extract(df=df)
 
-    _, X_train, X_test, _, _ = train(X=X, y=y)
+    _, X_train, X_test, y_train, y_test = train(X=X, y=y)
 
-    assert isinstance(X_train, np.ndarray)
-    assert isinstance(X_test, np.ndarray)
-    assert X_train.shape[1] == X_test.shape[1]
-    # ColumnTransformer puts OHE columns first, passthrough after
-    n_ohe_cols = X_train.shape[1] - (
-        len(config.model_cfg.features_raw) - len(config.model_cfg.features_categorical)
-    )
-    assert set(X_train[:, :n_ohe_cols].flatten()).issubset({0.0, 1.0})
-    assert set(X_test[:, :n_ohe_cols].flatten()).issubset({0.0, 1.0})
+    assert isinstance(X_train, pd.DataFrame)
+    assert isinstance(X_test, pd.DataFrame)
+    assert X_train.shape[1] == X_test.shape[1] == X.shape[1]
+    assert len(X_train) + len(X_test) == len(X)
+    assert len(y_train) + len(y_test) == len(y)
 
 
 def test_extract():
