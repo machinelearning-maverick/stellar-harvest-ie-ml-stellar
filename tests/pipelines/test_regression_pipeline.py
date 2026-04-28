@@ -1,5 +1,5 @@
 from pytest import raises
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
@@ -36,6 +36,17 @@ _KP_ROWS = [
     ),
 ]
 
+
+# 250 rows at the native 3h cadence — enough to survive max_lag=216 + horizon=1
+_KP_ROWS_REGRESSION = [
+    KpIndexEntity(
+        time_tag=datetime(2024, 1, 1, 0, 0) + timedelta(hours=3 * i),
+        kp_index=[1, 4, 7][i % 3],
+        estimated_kp=float([1.0, 4.0, 7.0][i % 3]),
+        kp=["1Z", "4P", "7M"][i % 3],
+    )
+    for i in range(250)
+]
 
 _KP_ROWS_LARGE = [
     KpIndexEntity(
@@ -130,17 +141,29 @@ def test_train_categorical_encoding():
 
 
 def test_extract():
-    df = kp_entities_to_df(_KP_ROWS)
+    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
 
     X, y = extract(df=df)
 
+    expected_feature_cols = [f"kp_lag{l}" for l in config.model_cfg.lags] + [
+        "kp_roll8_mean",
+        "kp_roll8_max",
+        "hour_sin",
+        "hour_cos",
+    ]
+    expected_valid_rows = len(df) - max(config.model_cfg.lags) - config.model_cfg.horizon
+
     assert isinstance(X, pd.DataFrame)
     assert isinstance(y, pd.Series)
-    assert len(X) == len(df)
-    assert list(X.columns) == config.model_cfg.features_raw
-    assert y.name == config.model_cfg.target
-    assert "time_tag" not in X.columns
-    assert y.tolist() == [0, 1, 2]  # kp_index 2->0, 4->1, 7->2
+    assert list(X.columns) == expected_feature_cols
+    assert y.name == "target"
+    assert y.dtype == float
+    assert len(X) == len(y) == expected_valid_rows
+    assert len(X) < len(df)
+    assert not X.isnull().any().any()
+    assert not y.isnull().any()
+    assert X["hour_sin"].between(-1, 1).all()
+    assert X["hour_cos"].between(-1, 1).all()
 
 
 async def test_validate():

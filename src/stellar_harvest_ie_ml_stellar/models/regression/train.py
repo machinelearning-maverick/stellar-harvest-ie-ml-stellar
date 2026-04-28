@@ -1,61 +1,36 @@
 import numpy as np
 import pandas as pd
-
 from typing import Tuple
 
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import HistGradientBoostingRegressor
 
 from stellar_harvest_ie_config.utils.log_decorators import log_io
 from stellar_harvest_ie_ml_stellar.models.regression.config.core import config
 
 
-@log_io(skip_types={
-    pd.DataFrame: lambda v: f"<DataFrame shape={v.shape} columns={list(v.columns)}>",
-    pd.Series: lambda v: f"<Series name={v.name} len={len(v)}>",
-    np.ndarray: lambda v: f"<ndarray shape={v.shape} dtype={v.dtype}>",
-})
+@log_io(
+    skip_types_input={
+        pd.DataFrame: lambda v: f"<DataFrame shape={v.shape} columns={list(v.columns)}>",
+        pd.Series: lambda v: f"<Series name={v.name} len={len(v)}>",
+    }
+)
 def train(
     X: pd.DataFrame, y: pd.Series
-) -> Tuple[RandomForestClassifier, pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-
-    test_size = config.model_cfg.test_size
-    random_state = config.model_cfg.random_state
+) -> Tuple[
+    HistGradientBoostingRegressor, pd.DataFrame, pd.DataFrame, pd.Series, pd.Series
+]:
+    cfg = config.model_cfg
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=random_state, shuffle=False
+        X, y, test_size=cfg.test_size, shuffle=False  # critical: chronological
     )
 
-    kp_known = sorted(X_train["kp"].unique())
-    kp_unknown = "<UNKNOWN>"
-    kp_all = [kp_known + [kp_unknown]]
-
-    X_train["kp"] = X_train["kp"].where(X_train["kp"].isin(kp_known), kp_unknown)
-    X_test["kp"] = X_test["kp"].where(X_test["kp"].isin(kp_known), kp_unknown)
-
-    # Categorical data
-    categorical_features = ["kp"]
-
-    one_hot_enc = OneHotEncoder(
-        categories=kp_all, drop=None, sparse_output=False, handle_unknown="ignore"
-    )  # unseen -> all-zero except the <UNKNOWN> column
-
-    transformer = ColumnTransformer(
-        [("one_hot_enc", one_hot_enc, categorical_features)],
-        remainder="passthrough",
-        verbose_feature_names_out=False,
-        sparse_threshold=0.0,
+    model = HistGradientBoostingRegressor(
+        max_iter=cfg.n_estimators,
+        max_depth=cfg.max_depth,
+        learning_rate=0.05,
+        random_state=cfg.random_state,
     )
-
-    X_train_transformed = transformer.fit_transform(X_train)
-    X_test_transformed = transformer.transform(X_test)
-
-    model = RandomForestClassifier(
-        n_estimators=config.model_cfg.n_estimators,
-        random_state=config.model_cfg.random_state,
-    )
-    model.fit(X_train_transformed, y_train)
-
-    return model, X_train_transformed, X_test_transformed, y_train, y_test
+    model.fit(X_train, y_train)
+    return model, X_train, X_test, y_train, y_test
