@@ -1,6 +1,6 @@
 import pandas as pd
 
-from stellar_harvest_ie_ml_stellar.models.classification.features import extract
+from stellar_harvest_ie_ml_stellar.models.regression.features import extract
 from stellar_harvest_ie_ml_stellar.models.classification.config.core import config
 
 from stellar_harvest_ie_config.logging_config import setup_logging

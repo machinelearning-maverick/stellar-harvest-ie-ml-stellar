@@ -2,11 +2,11 @@ from stellar_harvest_ie_config.utils.log_decorators import log_io
 
 
 from stellar_harvest_ie_ml_stellar.data.loader import load_planetary_kp_index
-from stellar_harvest_ie_ml_stellar.models.classification.validate import validate
-from stellar_harvest_ie_ml_stellar.models.classification.features import extract
-from stellar_harvest_ie_ml_stellar.models.classification.train import train
-from stellar_harvest_ie_ml_stellar.models.classification.predict import predict
-from stellar_harvest_ie_ml_stellar.models.classification.evaluate import evaluate
+from stellar_harvest_ie_ml_stellar.models.regression.validate import validate
+from stellar_harvest_ie_ml_stellar.models.regression.features import extract
+from stellar_harvest_ie_ml_stellar.models.regression.train import train
+from stellar_harvest_ie_ml_stellar.models.regression.predict import predict
+from stellar_harvest_ie_ml_stellar.models.regression.evaluate import evaluate
 
 
 @log_io()

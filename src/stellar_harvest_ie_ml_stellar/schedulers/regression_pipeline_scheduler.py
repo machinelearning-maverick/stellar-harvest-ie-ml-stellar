@@ -10,7 +10,7 @@ from stellar_harvest_ie_config.logging_config import setup_logging
 setup_logging()
 
 from stellar_harvest_ie_config.utils.log_decorators import log_io
-from stellar_harvest_ie_ml_stellar.pipelines.classification_pipeline import (
+from stellar_harvest_ie_ml_stellar.pipelines.regression_pipeline import (
     run_classification_pipeline,
 )
 

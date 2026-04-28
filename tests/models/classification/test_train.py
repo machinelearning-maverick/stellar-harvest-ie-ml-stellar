@@ -1,6 +1,6 @@
 import pandas as pd
 
-from stellar_harvest_ie_ml_stellar.models.classification.train import train
+from stellar_harvest_ie_ml_stellar.models.regression.train import train
 
 
 def test_train_function_runs():
