@@ -1,5 +1,8 @@
 from stellar_harvest_ie_config.utils.log_decorators import log_io
 
+from stellar_harvest_ie_store.db import AsyncSessionLocal
+from stellar_harvest_ie_store.repository import AsyncRepository
+from stellar_harvest_ie_models.stellar.swpc.entities import KpForecastEntity
 
 from stellar_harvest_ie_ml_stellar.data.loader import load_planetary_kp_index
 from stellar_harvest_ie_ml_stellar.models.regression.validate import validate
@@ -18,4 +21,16 @@ async def run_regression_pipeline() -> dict:
     predict(model=model, X_test=X_test)
     model_metrics = evaluate(model=model, X_test=X_test, y_test=y_test)
 
-    return model_metrics
+    forecast_df, forecast_entities = await forecast(
+        model=model, n_steps=n_forecast_steps
+    )
+
+    async with AsyncSessionLocal() as session:
+        repo = AsyncRepository(KpForecastEntity, session)
+        await repo.bulk_insert(forecast_entities)
+        await session.commit()
+
+    return {
+        "metrics": model_metrics,
+        "forecast": forecast_df.to_dict(orient="records"),
+    }
