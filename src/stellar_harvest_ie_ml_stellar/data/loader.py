@@ -31,5 +31,5 @@ def kp_entities_to_df(entities: List[KpIndexEntity]) -> pd.DataFrame:
 async def load_planetary_kp_index() -> pd.DataFrame:
     async with AsyncSessionLocal() as session:
         repository = AsyncRepository(KpIndexEntity, session)
-        indices: List[KpIndexEntity] = await repository.list()
+        indices: List[KpIndexEntity] = await repository.list(50_000)
         return kp_entities_to_df(indices)
