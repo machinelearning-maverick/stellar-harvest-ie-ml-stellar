@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta, timezone
@@ -14,7 +16,7 @@ def kp_to_g_level(kp: float) -> int:
     return 0 if kp < 5 else min(5, int(kp) - 4)
 
 
-async def forecast(model, n_steps: int = 8) -> pd.DataFrame:
+async def forecast(model, n_steps: int = 8) -> Tuple[pd.DataFrame, List[KpForecastEntity]]:
     """Produce the next n_steps Kp predictions, one per 3-hour block."""
     cfg = config.model_cfg
     issued_at = datetime.now(timezone.utc)  # one timestamp for the whole run

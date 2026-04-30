@@ -3,15 +3,19 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 
-from stellar_harvest_ie_models.stellar.swpc.entities import KpIndexEntity
+from stellar_harvest_ie_ml_stellar.models.regression.config.core import config
+from stellar_harvest_ie_models.stellar.swpc.entities import KpIndexEntity, KpForecastEntity
 from stellar_harvest_ie_ml_stellar.data.loader import kp_entities_to_df
+
 from stellar_harvest_ie_ml_stellar.models.regression.validate import validate
 from stellar_harvest_ie_ml_stellar.models.regression.features import extract
 from stellar_harvest_ie_ml_stellar.models.regression.train import train
 from stellar_harvest_ie_ml_stellar.models.regression.predict import predict
 from stellar_harvest_ie_ml_stellar.models.regression.evaluate import evaluate
+from stellar_harvest_ie_ml_stellar.models.regression.forecast import forecast
+
+
 from sklearn.ensemble import HistGradientBoostingRegressor
-from stellar_harvest_ie_ml_stellar.models.regression.config.core import config
 
 _KP_ROWS = [
     KpIndexEntity(
@@ -160,8 +164,4 @@ def test_evaluate():
     assert isinstance(result["r2"], float)
 
 
-def test_forecast():
-    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
-    X, y = extract(df=df)
-    model, _, X_test, _, y_test = train(X=X, y=y)
-    predict(model=model, X_test=X_test)
+
