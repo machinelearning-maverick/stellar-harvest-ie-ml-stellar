@@ -10,10 +10,11 @@ from stellar_harvest_ie_ml_stellar.models.regression.features import extract
 from stellar_harvest_ie_ml_stellar.models.regression.train import train
 from stellar_harvest_ie_ml_stellar.models.regression.predict import predict
 from stellar_harvest_ie_ml_stellar.models.regression.evaluate import evaluate
+from stellar_harvest_ie_ml_stellar.models.regression.forecast import forecast
 
 
 @log_io()
-async def run_regression_pipeline() -> dict:
+async def run_regression_pipeline(n_forecast_steps: int = 8) -> dict:
     df = await load_planetary_kp_index()
     validate(df=df)
     X, y = extract(df=df)

@@ -23,7 +23,8 @@ logger = logging.getLogger(
 def job():
     logger.info("Running classification training pipeline...")
     try:
-        metrics = run_regression_pipeline()
+        n_forecast_steps = os.environ["SWPC_REGRESSION_N_FORECAST_STEPS"]
+        metrics = run_regression_pipeline(n_forecast_steps=n_forecast_steps)
         logger.info(f"Training finished: metrics={metrics}")
     except Exception:
         logger.error("Training failed.", exc_info=True)
