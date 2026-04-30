@@ -10,5 +10,5 @@ from stellar_harvest_ie_ml_stellar.models.regression import __version__ as _vers
     }
 )
 def predict(model, X_test) -> dict:
-    y_pred = np.clip(model.predict(X_test), 0.0, 9.0)
-    return {"predictions": y_pred, "version": _version, "validation_errors": None}
+    y_preds = np.clip(model.predict(X_test), 0.0, 9.0)
+    return {"y_preds": y_preds, "version": _version, "validation_errors": None}

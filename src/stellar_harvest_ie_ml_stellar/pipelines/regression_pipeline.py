@@ -18,17 +18,19 @@ async def run_regression_pipeline(n_forecast_steps: int = 8) -> dict:
     df = await load_planetary_kp_index()
     validate(df=df)
     X, y = extract(df=df)
-    model, X_train, X_test, y_train, y_test = train(X=X, y=y)
-    predict(model=model, X_test=X_test)
-    model_metrics = evaluate(model=model, X_test=X_test, y_test=y_test)
+    model, _, X_test, _, y_test = train(X=X, y=y)
+    predict_result = predict(model=model, X_test=X_test)
+    model_metrics = evaluate(
+        X_test=X_test, y_test=y_test, y_preds=predict_result["y_preds"]
+    )
 
     forecast_df, forecast_entities = await forecast(
         model=model, n_steps=n_forecast_steps
     )
 
     async with AsyncSessionLocal() as session:
-        repo = AsyncRepository(KpForecastEntity, session)
-        await repo.bulk_insert(forecast_entities)
+        repository = AsyncRepository(KpForecastEntity, session)
+        await repository.add_all(forecast_entities)
         await session.commit()
 
     return {

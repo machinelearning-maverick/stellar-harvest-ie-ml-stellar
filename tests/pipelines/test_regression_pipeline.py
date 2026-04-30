@@ -135,10 +135,10 @@ def test_predict():
     result = predict(model=model, X_test=X_test)
 
     assert isinstance(result, dict)
-    assert set(result.keys()) == {"predictions", "version", "validation_errors"}
-    assert len(result["predictions"]) == X_test.shape[0]
-    assert result["predictions"].min() >= 0.0
-    assert result["predictions"].max() <= 9.0
+    assert set(result.keys()) == {"y_preds", "version", "validation_errors"}
+    assert len(result["y_preds"]) == X_test.shape[0]
+    assert result["y_preds"].min() >= 0.0
+    assert result["y_preds"].max() <= 9.0
     assert isinstance(result["version"], str)
     assert result["validation_errors"] is None
 
@@ -147,8 +147,9 @@ def test_evaluate():
     df = kp_entities_to_df(_KP_ROWS_REGRESSION)
     X, y = extract(df=df)
     model, _, X_test, _, y_test = train(X=X, y=y)
+    predict_result = predict(model, X_test=X_test)
 
-    result = evaluate(model=model, X_test=X_test, y_test=y_test)
+    result = evaluate(X_test=X_test, y_test=y_test, y_preds=predict_result["y_preds"])
 
     assert isinstance(result, dict)
     assert set(result.keys()) == {"mae", "rmse", "r2", "mae_baseline", "rmse_baseline"}
@@ -157,3 +158,10 @@ def test_evaluate():
     assert result["mae_baseline"] >= 0.0
     assert result["rmse_baseline"] >= 0.0
     assert isinstance(result["r2"], float)
+
+
+def test_forecast():
+    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
+    X, y = extract(df=df)
+    model, _, X_test, _, y_test = train(X=X, y=y)
+    predict(model=model, X_test=X_test)
