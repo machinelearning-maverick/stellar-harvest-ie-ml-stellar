@@ -13,7 +13,6 @@ from stellar_harvest_ie_ml_stellar.models.regression.evaluate import evaluate
 from sklearn.ensemble import HistGradientBoostingRegressor
 from stellar_harvest_ie_ml_stellar.models.regression.config.core import config
 
-
 _KP_ROWS = [
     KpIndexEntity(
         time_tag=datetime(2024, 1, 1, 0, 0),
@@ -48,36 +47,47 @@ _KP_ROWS_REGRESSION = [
 ]
 
 
-def test_evaluate():
+async def test_validate():
+    df = kp_entities_to_df(_KP_ROWS)
+    assert isinstance(df, pd.DataFrame)
+
+    validate(df=df)
+
+
+async def test_validate_missing_columns():
+    df = kp_entities_to_df(_KP_ROWS)
+    df = df.drop(columns=["kp_index"])
+
+    with raises(ValueError, match="missing required columns"):
+        validate(df=df)
+
+
+def test_extract():
     df = kp_entities_to_df(_KP_ROWS_REGRESSION)
+
     X, y = extract(df=df)
-    model, _, X_test, _, y_test = train(X=X, y=y)
 
-    result = evaluate(model=model, X_test=X_test, y_test=y_test)
+    expected_feature_cols = [f"kp_lag{l}" for l in config.model_cfg.lags] + [
+        "kp_roll8_mean",
+        "kp_roll8_max",
+        "hour_sin",
+        "hour_cos",
+    ]
+    expected_valid_rows = (
+        len(df) - max(config.model_cfg.lags) - config.model_cfg.horizon
+    )
 
-    assert isinstance(result, dict)
-    assert set(result.keys()) == {"mae", "rmse", "r2", "mae_baseline", "rmse_baseline"}
-    assert result["mae"] >= 0.0
-    assert result["rmse"] >= 0.0
-    assert result["mae_baseline"] >= 0.0
-    assert result["rmse_baseline"] >= 0.0
-    assert isinstance(result["r2"], float)
-
-
-def test_predict():
-    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
-    X, y = extract(df=df)
-    model, _, X_test, _, _ = train(X=X, y=y)
-
-    result = predict(model=model, X_test=X_test)
-
-    assert isinstance(result, dict)
-    assert set(result.keys()) == {"predictions", "version", "validation_errors"}
-    assert len(result["predictions"]) == X_test.shape[0]
-    assert result["predictions"].min() >= 0.0
-    assert result["predictions"].max() <= 9.0
-    assert isinstance(result["version"], str)
-    assert result["validation_errors"] is None
+    assert isinstance(X, pd.DataFrame)
+    assert isinstance(y, pd.Series)
+    assert list(X.columns) == expected_feature_cols
+    assert y.name == "target"
+    assert y.dtype == float
+    assert len(X) == len(y) == expected_valid_rows
+    assert len(X) < len(df)
+    assert not X.isnull().any().any()
+    assert not y.isnull().any()
+    assert X["hour_sin"].between(-1, 1).all()
+    assert X["hour_cos"].between(-1, 1).all()
 
 
 def test_train_split():
@@ -117,42 +127,33 @@ def test_train_split_shapes():
     assert len(y_train) + len(y_test) == len(y)
 
 
-def test_extract():
+def test_predict():
     df = kp_entities_to_df(_KP_ROWS_REGRESSION)
-
     X, y = extract(df=df)
+    model, _, X_test, _, _ = train(X=X, y=y)
 
-    expected_feature_cols = [f"kp_lag{l}" for l in config.model_cfg.lags] + [
-        "kp_roll8_mean",
-        "kp_roll8_max",
-        "hour_sin",
-        "hour_cos",
-    ]
-    expected_valid_rows = len(df) - max(config.model_cfg.lags) - config.model_cfg.horizon
+    result = predict(model=model, X_test=X_test)
 
-    assert isinstance(X, pd.DataFrame)
-    assert isinstance(y, pd.Series)
-    assert list(X.columns) == expected_feature_cols
-    assert y.name == "target"
-    assert y.dtype == float
-    assert len(X) == len(y) == expected_valid_rows
-    assert len(X) < len(df)
-    assert not X.isnull().any().any()
-    assert not y.isnull().any()
-    assert X["hour_sin"].between(-1, 1).all()
-    assert X["hour_cos"].between(-1, 1).all()
+    assert isinstance(result, dict)
+    assert set(result.keys()) == {"predictions", "version", "validation_errors"}
+    assert len(result["predictions"]) == X_test.shape[0]
+    assert result["predictions"].min() >= 0.0
+    assert result["predictions"].max() <= 9.0
+    assert isinstance(result["version"], str)
+    assert result["validation_errors"] is None
 
 
-async def test_validate():
-    df = kp_entities_to_df(_KP_ROWS)
-    assert isinstance(df, pd.DataFrame)
+def test_evaluate():
+    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
+    X, y = extract(df=df)
+    model, _, X_test, _, y_test = train(X=X, y=y)
 
-    validate(df=df)
+    result = evaluate(model=model, X_test=X_test, y_test=y_test)
 
-
-async def test_validate_missing_columns():
-    df = kp_entities_to_df(_KP_ROWS)
-    df = df.drop(columns=["kp_index"])
-
-    with raises(ValueError, match="missing required columns"):
-        validate(df=df)
+    assert isinstance(result, dict)
+    assert set(result.keys()) == {"mae", "rmse", "r2", "mae_baseline", "rmse_baseline"}
+    assert result["mae"] >= 0.0
+    assert result["rmse"] >= 0.0
+    assert result["mae_baseline"] >= 0.0
+    assert result["rmse_baseline"] >= 0.0
+    assert isinstance(result["r2"], float)
