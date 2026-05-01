@@ -15,7 +15,12 @@ from stellar_harvest_ie_ml_stellar.models.regression.features import extract
 from stellar_harvest_ie_ml_stellar.models.regression.train import train
 from stellar_harvest_ie_ml_stellar.models.regression.predict import predict
 from stellar_harvest_ie_ml_stellar.models.regression.evaluate import evaluate
-from stellar_harvest_ie_ml_stellar.models.regression.forecast import forecast
+from stellar_harvest_ie_ml_stellar.models.regression.forecast import (
+    forecast,
+    build_feature_row,
+    forecast_step,
+    predictions_to_entities,
+)
 
 
 from sklearn.ensemble import HistGradientBoostingRegressor
@@ -167,11 +172,94 @@ def test_evaluate():
     assert isinstance(result["r2"], float)
 
 
+def _build_series() -> pd.Series:
+    df = kp_index_entities_to_df(_KP_ROWS_REGRESSION)
+    df["time_tag"] = pd.to_datetime(df["time_tag"], utc=True)
+    return (
+        df.set_index("time_tag")
+        .sort_index()
+        .resample(config.model_cfg.resample_rule)
+        .agg({"estimated_kp": "last"})
+        .dropna()["estimated_kp"]
+    )
+
+
+def test_build_feature_row():
+    series = _build_series()
+    next_time = series.index[-1] + pd.Timedelta(config.model_cfg.resample_rule)
+
+    X = build_feature_row(series, next_time, config.model_cfg)
+
+    expected_cols = [f"kp_lag{l}" for l in config.model_cfg.lags] + [
+        "kp_roll8_mean",
+        "kp_roll8_max",
+        "hour_sin",
+        "hour_cos",
+    ]
+    assert isinstance(X, pd.DataFrame)
+    assert X.shape == (1, len(expected_cols))
+    assert list(X.columns) == expected_cols
+    assert not X.isnull().any().any()
+    assert X["hour_sin"].between(-1, 1).all()
+    assert X["hour_cos"].between(-1, 1).all()
+
+
+def test_forecast_step():
+    series = _build_series()
+    df = kp_index_entities_to_df(_KP_ROWS_REGRESSION)
+    X, y = extract(df=df)
+    model, _, _, _, _ = train(X=X, y=y)
+
+    prediction, updated_series = forecast_step(
+        model, series, step=1, cfg=config.model_cfg
+    )
+
+    assert set(prediction.keys()) == {"time_tag", "predicted_kp", "horizon"}
+    assert prediction["horizon"] == 1
+    assert 0.0 <= prediction["predicted_kp"] <= 9.0
+    assert len(updated_series) == len(series) + 1
+    assert updated_series.index[-1] == prediction["time_tag"]
+
+
+def test_predictions_to_entities():
+    from datetime import timezone
+
+    issued_at = datetime(2024, 1, 1, 0, 0, tzinfo=timezone.utc)
+    predictions = [
+        {
+            "time_tag": datetime(2024, 1, 1, 3, 0, tzinfo=timezone.utc),
+            "predicted_kp": 3.5,
+            "horizon": 1,
+        },
+        {
+            "time_tag": datetime(2024, 1, 1, 6, 0, tzinfo=timezone.utc),
+            "predicted_kp": 5.1,
+            "horizon": 2,
+        },
+    ]
+
+    entities = predictions_to_entities(predictions, issued_at, model_version="0.1.0")
+
+    assert len(entities) == 2
+    assert all(isinstance(e, KpForecastEntity) for e in entities)
+    assert entities[0].horizon == 1
+    assert entities[1].horizon == 2
+    assert entities[0].predicted_g == 0  # kp 3.5 < 5 → G0
+    assert entities[1].predicted_g == 1  # kp 5.1 → G1
+    assert entities[0].model_version == "0.1.0"
+
+
 async def test_forecast():
     df = kp_index_entities_to_df(_KP_ROWS_REGRESSION)
     X, y = extract(df=df)
-    model, _, X_test, _, y_test = train(X=X, y=y)
-    predict_result = predict(model=model, X_test=X_test)
-    result = evaluate(X_test=X_test, y_test=y_test, y_preds=predict_result["y_preds"])
+    model, _, _, _, _ = train(X=X, y=y)
 
-    df_predictions, entities = await forecast(model=model, df=df, n_steps=6)
+    n_steps = 6
+    df_predictions, entities = await forecast(model=model, df=df, n_steps=n_steps)
+
+    assert isinstance(df_predictions, pd.DataFrame)
+    assert len(df_predictions) == n_steps
+    assert set(df_predictions.columns) == {"time_tag", "predicted_kp", "horizon"}
+    assert df_predictions["predicted_kp"].between(0.0, 9.0).all()
+    assert len(entities) == n_steps
+    assert all(isinstance(e, KpForecastEntity) for e in entities)
