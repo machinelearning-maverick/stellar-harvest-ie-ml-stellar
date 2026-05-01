@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stellar-harvest-ie-ml-stellar"
-version = "0.1.1"
+version = "0.1.3"
 description = "Machine learning training and inference pipeline for StellarHarvest"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -18,6 +18,7 @@ dependencies = [
   "pydantic>=2.11.0",
   "pyyaml>=6.0",
   "schedule>=1.2.0",
+  "python-dotenv>=1.0.0",
   "stellar-harvest-ie-config>=0.1.2",
   "stellar-harvest-ie-models>=0.3.1",
   "stellar-harvest-ie-store>=0.1.2",
@@ -29,6 +30,13 @@ sh-regression-pipeline-scheduler = "stellar_harvest_ie_ml_stellar.schedulers.reg
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["stellar_harvest_ie_ml_stellar*"]
+
+[tool.setuptools.package-data]
+stellar_harvest_ie_ml_stellar = [
+    "models/classification/VERSION",
+    "models/regression/VERSION",
+    "models/regression/config/config.yml",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

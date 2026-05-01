@@ -36,5 +36,5 @@ RUN --mount=type=secret,id=env \
 # Layer 3: app code / entrypoint (rarely changes)
 CMD ["sh-regression-pipeline-scheduler"]
 
-# ENTRYPOINT ["shsh-regression-pipeline-scheduler"]
+# ENTRYPOINT ["sh-regression-pipeline-scheduler"]
 # CMD [] # default args, empty
