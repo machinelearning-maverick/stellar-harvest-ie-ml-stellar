@@ -4,8 +4,11 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 from stellar_harvest_ie_ml_stellar.models.regression.config.core import config
-from stellar_harvest_ie_models.stellar.swpc.entities import KpIndexEntity, KpForecastEntity
-from stellar_harvest_ie_ml_stellar.data.loader import kp_entities_to_df
+from stellar_harvest_ie_models.stellar.swpc.entities import (
+    KpIndexEntity,
+    KpForecastEntity,
+)
+from stellar_harvest_ie_ml_stellar.data.loader import kp_index_entities_to_df
 
 from stellar_harvest_ie_ml_stellar.models.regression.validate import validate
 from stellar_harvest_ie_ml_stellar.models.regression.features import extract
@@ -52,14 +55,14 @@ _KP_ROWS_REGRESSION = [
 
 
 async def test_validate():
-    df = kp_entities_to_df(_KP_ROWS)
+    df = kp_index_entities_to_df(_KP_ROWS)
     assert isinstance(df, pd.DataFrame)
 
     validate(df=df)
 
 
 async def test_validate_missing_columns():
-    df = kp_entities_to_df(_KP_ROWS)
+    df = kp_index_entities_to_df(_KP_ROWS)
     df = df.drop(columns=["kp_index"])
 
     with raises(ValueError, match="missing required columns"):
@@ -67,7 +70,7 @@ async def test_validate_missing_columns():
 
 
 def test_extract():
-    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
+    df = kp_index_entities_to_df(_KP_ROWS_REGRESSION)
 
     X, y = extract(df=df)
 
@@ -95,7 +98,7 @@ def test_extract():
 
 
 def test_train_split():
-    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
+    df = kp_index_entities_to_df(_KP_ROWS_REGRESSION)
     X, y = extract(df=df)
 
     _, _, _, y_train, y_test = train(X=X, y=y)
@@ -107,7 +110,7 @@ def test_train_split():
 
 
 def test_train_model():
-    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
+    df = kp_index_entities_to_df(_KP_ROWS_REGRESSION)
     X, y = extract(df=df)
 
     model, _, _, _, _ = train(X=X, y=y)
@@ -119,7 +122,7 @@ def test_train_model():
 
 
 def test_train_split_shapes():
-    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
+    df = kp_index_entities_to_df(_KP_ROWS_REGRESSION)
     X, y = extract(df=df)
 
     _, X_train, X_test, y_train, y_test = train(X=X, y=y)
@@ -132,7 +135,7 @@ def test_train_split_shapes():
 
 
 def test_predict():
-    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
+    df = kp_index_entities_to_df(_KP_ROWS_REGRESSION)
     X, y = extract(df=df)
     model, _, X_test, _, _ = train(X=X, y=y)
 
@@ -148,7 +151,7 @@ def test_predict():
 
 
 def test_evaluate():
-    df = kp_entities_to_df(_KP_ROWS_REGRESSION)
+    df = kp_index_entities_to_df(_KP_ROWS_REGRESSION)
     X, y = extract(df=df)
     model, _, X_test, _, y_test = train(X=X, y=y)
     predict_result = predict(model, X_test=X_test)
@@ -164,4 +167,11 @@ def test_evaluate():
     assert isinstance(result["r2"], float)
 
 
+async def test_forecast():
+    df = kp_index_entities_to_df(_KP_ROWS_REGRESSION)
+    X, y = extract(df=df)
+    model, _, X_test, _, y_test = train(X=X, y=y)
+    predict_result = predict(model=model, X_test=X_test)
+    result = evaluate(X_test=X_test, y_test=y_test, y_preds=predict_result["y_preds"])
 
+    df_predictions, entities = await forecast(model=model, df=df, n_steps=6)

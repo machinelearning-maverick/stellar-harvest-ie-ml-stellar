@@ -25,7 +25,7 @@ async def run_regression_pipeline(n_forecast_steps: int = 8) -> dict:
     )
 
     forecast_df, forecast_entities = await forecast(
-        model=model, n_steps=n_forecast_steps
+        model=model, df=df, n_steps=n_forecast_steps
     )
 
     async with AsyncSessionLocal() as session:
