@@ -1,3 +1,7 @@
+from stellar_harvest_ie_config.logging_config import setup_logging
+
+setup_logging()
+
 from pytest import raises
 from datetime import datetime, timedelta
 
@@ -47,7 +51,7 @@ _KP_ROWS = [
 ]
 
 
-# 250 rows at the native 3h cadence — enough to survive max_lag=216 + horizon=1
+# 250 rows at the native 3h cadence - enough to survive max_lag=216 + horizon=1
 _KP_ROWS_REGRESSION = [
     KpIndexEntity(
         time_tag=datetime(2024, 1, 1, 0, 0) + timedelta(hours=3 * i),
