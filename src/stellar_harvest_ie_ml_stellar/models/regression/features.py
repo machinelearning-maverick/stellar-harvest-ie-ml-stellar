@@ -6,6 +6,19 @@ from stellar_harvest_ie_config.utils.log_decorators import log_io
 from stellar_harvest_ie_ml_stellar.models.regression.config.core import config
 
 
+def resample_1minute_3hours(df: pd.DataFrame, rule: str) -> pd.DataFrame:
+    """Resample 1-minute -> 3-hour blocks (last value per bucket)"""
+    df = df.copy()
+    df["time_tag"] = pd.to_datetime(df["time_tag"], utc=True)
+    return (
+        df.set_index("time_tag")
+        .sort_index()
+        .resample(rule)
+        .agg({"estimated_kp": "last", "kp_index": "last"})
+        .dropna(subset=["estimated_kp"])
+    )
+
+
 @log_io(
     skip_types_input={
         pd.DataFrame: lambda v: f"<DataFrame shape={v.shape} columns={list(v.columns)}>",
@@ -18,17 +31,7 @@ from stellar_harvest_ie_ml_stellar.models.regression.config.core import config
 )
 def extract(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
     cfg = config.model_cfg
-    df = df.copy()
-
-    # 1) Resample 1-minute -> 3-hour blocks (last value per bucket)
-    df["time_tag"] = pd.to_datetime(df["time_tag"], utc=True)
-    df = (
-        df.set_index("time_tag")
-        .sort_index()
-        .resample(cfg.resample_rule)
-        .agg({"estimated_kp": "last", "kp_index": "last"})
-        .dropna(subset=["estimated_kp"])
-    )
+    df = resample_1minute_3hours(df, cfg.resample_rule)
 
     # 2) Lag features (past values only)
     for lag in cfg.lags:

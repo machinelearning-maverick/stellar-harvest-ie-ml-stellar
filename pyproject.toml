@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stellar-harvest-ie-ml-stellar"
-version = "0.1.3"
+version = "0.1.4"
 description = "Machine learning training and inference pipeline for StellarHarvest"
 readme = "README.md"
 requires-python = ">=3.11"
